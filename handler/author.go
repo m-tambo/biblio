@@ -21,43 +21,43 @@ type AuthorsDAO interface {
 	DeleteAuthor(id string)
 }
 
-func NewDAO(db *sql.DB) AuthorsDAO {
+func NewAuthorDAO(db *sql.DB) AuthorsDAO {
 	return dao{db: db}
 }
 
 type getAuthors struct {
-	dao AuthorsDAO
+	adao AuthorsDAO
 }
 
 type createAuthor struct {
-	dao AuthorsDAO
+	adao AuthorsDAO
 }
 
 type deleteAuthor struct {
-	dao AuthorsDAO
+	adao AuthorsDAO
 }
 
-func NewGetAuthorsHandler(dao AuthorsDAO) http.Handler {
-	return getAuthors{dao: dao}
+func NewGetAuthorsHandler(adao AuthorsDAO) http.Handler {
+	return getAuthors{adao: adao}
 }
 
-func NewCreateAuthorHandler(dao AuthorsDAO) http.Handler {
-	return createAuthor{dao: dao}
+func NewCreateAuthorHandler(adao AuthorsDAO) http.Handler {
+	return createAuthor{adao: adao}
 }
 
-func NewDeleteAuthorHandler(dao AuthorsDAO) http.Handler {
-	return deleteAuthor{dao: dao}
+func NewDeleteAuthorHandler(adao AuthorsDAO) http.Handler {
+	return deleteAuthor{adao: adao}
 }
 
 func (ga getAuthors) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	authors := ga.dao.GetAuthors()
+	authors := ga.adao.GetAuthors()
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(authors)
 }
 
 func (ca createAuthor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ca.dao.CreateAuthor()
+	ca.adao.CreateAuthor()
 	w.WriteHeader(http.StatusNoContent)
 	w.Header().Set("Content-Type", "application/json")
 }
@@ -68,7 +68,7 @@ func (da deleteAuthor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		id = val
 	}
 
-	da.dao.DeleteAuthor(id)
+	da.adao.DeleteAuthor(id)
 	w.WriteHeader(http.StatusNoContent)
 	w.Header().Set("Content-Type", "application/json")
 }
