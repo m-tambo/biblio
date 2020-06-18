@@ -1,0 +1,7 @@
+## change values and save as yaml file
+
+DB_HOST: "hostie-host.net"
+DB_PORT: "90210"
+DB_USER: "user-xyz"
+DB_PASS: "123456"
+DB_NAME: "poshtgresh"
