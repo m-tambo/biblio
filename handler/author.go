@@ -76,7 +76,7 @@ func (da deleteAuthor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (d dao) GetAuthors() []schema.Author {
 	var got []schema.Author
 
-	qry := "SELECT * FROM author"
+	qry := "SELECT id, first_name, last_name, dob, created FROM author"
 
 	rows, err := d.db.Query(qry)
 	if err != nil {

@@ -34,7 +34,7 @@ func (gp getPatrons) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (d dao) GetPatrons() []schema.Patron {
 	var patrons []schema.Patron
-	qry := "SELECT * FROM patron"
+	qry := "SELECT id, first_name, last_name, street, city, state, zip, dob, created FROM patron"
 
 	rows, err := d.db.Query(qry)
 	if err != nil {

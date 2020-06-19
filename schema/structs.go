@@ -25,8 +25,10 @@ type Patron struct {
 }
 
 type Book struct {
-	Title       string `json:"title"`
-	Pages       int    `json:"pages"`
-	Year        int    `json:"year"`
-	Description string `json:"description"`
+	ID          int       `json:"id"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Pages       int       `json:"pages"`
+	Year        int       `json:"year"`
+	Created     time.Time `json:"created"`
 }
