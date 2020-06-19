@@ -1,10 +1,13 @@
 package main
 
 import (
+	"net/http"
+
 	"biblio/database"
 	"biblio/handler"
+	"biblio/middleware"
+
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 func main() {
@@ -18,6 +21,8 @@ func main() {
 	r.Handle("/authors/{id}", handler.NewDeleteAuthorHandler(ad)).Methods(http.MethodDelete)
 
 	r.Handle("/patrons", handler.NewGetPatronsHandler(pd)).Methods(http.MethodGet)
+
+	r.Use(middleware.ExecutionTimer)
 
 	http.ListenAndServe(":8008", r)
 }
