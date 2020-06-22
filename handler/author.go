@@ -16,7 +16,7 @@ type dao struct {
 }
 
 type AuthorsDAO interface {
-	GetAuthors() []schema.Author
+	GetAuthors() ([]schema.Author, error)
 	CreateAuthor()
 	DeleteAuthor(id string)
 }
@@ -49,14 +49,28 @@ func NewDeleteAuthorHandler(adao AuthorsDAO) http.Handler {
 	return deleteAuthor{adao: adao}
 }
 
+// the handlers form responses for the incoming requests,
+// hold the business logic of the user registration process,
+// and write responses and break remaining steps when one step fails.
 func (ga getAuthors) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	authors := ga.adao.GetAuthors()
+	authors, err := ga.adao.GetAuthors()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(authors)
 }
 
 func (ca createAuthor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var a schema.Author
+	if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	ca.adao.CreateAuthor()
 	w.WriteHeader(http.StatusNoContent)
 	w.Header().Set("Content-Type", "application/json")
@@ -73,7 +87,7 @@ func (da deleteAuthor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func (d dao) GetAuthors() []schema.Author {
+func (d dao) GetAuthors() ([]schema.Author, error) {
 	var got []schema.Author
 
 	qry := "SELECT id, first_name, last_name, dob, created FROM author"
@@ -81,6 +95,7 @@ func (d dao) GetAuthors() []schema.Author {
 	rows, err := d.db.Query(qry)
 	if err != nil {
 		log.Printf("Error getting Authors: %v", err)
+		return nil, err
 	}
 
 	for rows.Next() {
@@ -88,12 +103,13 @@ func (d dao) GetAuthors() []schema.Author {
 		err = rows.Scan(&a.ID, &a.FirstName, &a.LastName, &a.Dob, &a.Created)
 		if err != nil {
 			log.Printf("Error reading Authors response: %v", err)
+			return nil, err
 		}
 
 		got = append(got, a)
 	}
 
-	return got
+	return got, nil
 }
 
 func (d dao) CreateAuthor() {
