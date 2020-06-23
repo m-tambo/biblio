@@ -21,6 +21,7 @@ func main() {
 	r.Handle("/authors/{id}", handler.NewDeleteAuthorHandler(ad)).Methods(http.MethodDelete)
 
 	r.Handle("/patrons", handler.NewGetPatronsHandler(pd)).Methods(http.MethodGet)
+	r.Handle("/patrons/{id}", handler.NewGetPatronByIDHandler(pd)).Methods(http.MethodGet)
 
 	r.Use(middleware.ExecutionTimer)
 
