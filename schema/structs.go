@@ -22,19 +22,14 @@ type Patron struct {
 	Zip       int       `json:"zip"`
 	Dob       string    `json:"dob"`
 	Created   time.Time `json:"created"`
-	Books []PatronBook
-}
-
-type PatronBook struct {
-	ID          int       `json:"id"`
-	Title       string    `json:"title"`
+	Books     []Book
 }
 
 type Book struct {
-	ID          int       `json:"id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Pages       int       `json:"pages"`
-	Year        int       `json:"year"`
-	Created     time.Time `json:"created"`
+	ID          int        `json:"id"`
+	Title       string     `json:"title"`
+	Description string     `json:"description,omitempty"`
+	Pages       int        `json:"pages,omitempty"`
+	Year        int        `json:"year,omitempty"`
+	Created     *time.Time `json:"created,omitempty"`
 }

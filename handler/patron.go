@@ -87,13 +87,13 @@ func (d dao) GetPatronByID(id string) schema.Patron {
 	row := d.db.QueryRow(qryPatron)
 	row.Scan(&p.ID, &p.FirstName, &p.LastName, &p.Street, &p.City, &p.State, &p.Zip, &p.Dob, &p.Created)
 
-	var books []schema.PatronBook
+	var books []schema.Book
 	rows, err := d.db.Query(qryBooks)
 	if err != nil {
 		log.Printf("Error getting Patron Books from db: %v", err)
 	}
 	for rows.Next() {
-		var b schema.PatronBook
+		var b schema.Book
 		err := rows.Scan(&b.ID, &b.Title)
 		if err != nil {
 			log.Printf("Error reading book row: %v", err)
