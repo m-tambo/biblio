@@ -17,6 +17,7 @@ type dao struct {
 
 type AuthorsDAO interface {
 	GetAuthors() ([]schema.Author, error)
+	GetAuthorByID(id string) (schema.Author, error)
 	CreateAuthor()
 	DeleteAuthor(id string)
 }
@@ -26,6 +27,10 @@ func NewAuthorDAO(db *sql.DB) AuthorsDAO {
 }
 
 type getAuthors struct {
+	adao AuthorsDAO
+}
+
+type getAuthorByID struct {
 	adao AuthorsDAO
 }
 
@@ -39,6 +44,10 @@ type deleteAuthor struct {
 
 func NewGetAuthorsHandler(adao AuthorsDAO) http.Handler {
 	return getAuthors{adao: adao}
+}
+
+func NewGetAuthorByIDHandler(adao AuthorsDAO) http.Handler {
+	return getAuthorByID{adao:adao}
 }
 
 func NewCreateAuthorHandler(adao AuthorsDAO) http.Handler {
@@ -64,6 +73,23 @@ func (ga getAuthors) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(authors)
 }
 
+func (ga getAuthorByID) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var id string
+	if val, ok := mux.Vars(r)["id"]; ok {
+		id = val
+	}
+
+	author, err := ga.adao.GetAuthorByID(id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(author)
+}
+
 func (ca createAuthor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var a schema.Author
 	if err := json.NewDecoder(r.Body).Decode(&a); err != nil {
@@ -72,7 +98,7 @@ func (ca createAuthor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ca.adao.CreateAuthor()
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 }
 
@@ -112,13 +138,35 @@ func (d dao) GetAuthors() ([]schema.Author, error) {
 	return got, nil
 }
 
+func (d dao) GetAuthorByID(id string) (schema.Author, error) {
+	var a schema.Author
+
+	qry := "SELECT id, first_name, last_name, dob, created FROM author WHERE id = " + id + ";"
+
+	row, err := d.db.Query(qry)
+	if err != nil {
+		log.Printf("Error getting Author: %v", err)
+		return a, err
+	}
+
+	for row.Next() {
+		err := row.Scan(&a.ID, &a.FirstName, &a.LastName, &a.Dob, &a.Created)
+		if err != nil {
+			log.Printf("Error reading book row: %v", err)
+		}
+	}
+
+	return a, nil
+}
+
 func (d dao) CreateAuthor() {
 	var a schema.Author
 
 	qry := `
 		INSERT INTO author (first_name, last_name, dob, created)
-		VALUES ($1, $2, $3, $4)
+		VALUES ($1, $2, $3, $4) returning id
 	`
+
 	_, err := d.db.Exec(qry, a.FirstName, a.LastName, a.Dob, time.Now())
 	if err != nil {
 		log.Printf("Error creating Author: %v", err)
